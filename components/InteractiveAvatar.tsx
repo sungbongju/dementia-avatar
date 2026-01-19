@@ -127,8 +127,8 @@ const AVATAR_CONFIG: StartAvatarRequest = {
   quality: AvatarQuality.Low,
   avatarName: AVATARS[0].avatar_id,
   voice: {
-    rate: 1.5,
-    emotion: VoiceEmotion.EXCITED,
+    rate: 1.2,                        // ✅ 쇼핑몰 봇과 동일
+    emotion: VoiceEmotion.FRIENDLY,   // ✅ 쇼핑몰 봇과 동일
     model: ElevenLabsModel.eleven_flash_v2_5,
   },
   language: "ko",

@@ -16,6 +16,9 @@
  * 🔧 2026-01-12 수정:
  * - 숫자 발음 문제 해결 (454 → "사백오십사")
  * - 이름 없을 때 "손님님" → "어서 오세요" 인사로 변경
+ * 
+ * 🔧 2026-01-20 수정:
+ * - 게임 완료 시 격려 메시지 기능 추가 (GAME_COMPLETE)
  * ================================================
  */
 
@@ -118,6 +121,130 @@ function generateGreeting(
   
   // 이름이 있지만, 기록이 없는 경우
   return `안녕하세요, ${name}님! 저는 두뇌 게임 도우미예요.`;
+}
+
+// ============================================
+// 🆕 게임 완료 격려 메시지 시스템
+// ============================================
+
+interface GameCompleteData {
+  game: string;
+  gameName: string;
+  score: number;
+  maxScore: number;
+  playerName?: string;
+  completedCount: number;
+  totalGames: number;
+}
+
+/**
+ * 격려 메시지 풀 - 점수대별, 상황별 다양한 메시지
+ */
+const ENCOURAGEMENT_MESSAGES = {
+  // 높은 점수 (80점 이상)
+  excellent: [
+    "{name}님, {score} 정말 대단해요! 실력이 출중하시네요!",
+    "와, {score}이에요! {name}님, 기억력이 정말 좋으시네요!",
+    "{score}! 훌륭해요, {name}님! 이 조자로 계속 가봐요!",
+    "{name}님, {score} 멋져요! 두뇌가 아주 건강하시네요!",
+    "대단해요! {score}이라니, {name}님 최고예요!",
+  ],
+  // 중간 점수 (60-79점)
+  good: [
+    "{name}님, {score} 잘하셨어요! 꾸준히 하시면 더 좋아질 거예요.",
+    "{score}! 좋은 결과예요, {name}님. 다음엔 더 잘할 수 있어요!",
+    "잘하셨어요! {score}이면 충분히 좋은 점수예요, {name}님.",
+    "{name}님, {score} 괜찮아요! 연습하면 점점 늘어요.",
+    "좋아요, {name}님! {score} 훌륭한 시작이에요!",
+  ],
+  // 낮은 점수 (60점 미만) - 노력 칭찬
+  effort: [
+    "{name}님, 끝까지 완료하신 것만으로도 대단해요!",
+    "포기하지 않고 끝까지 하신 {name}님, 멋져요!",
+    "연습하면 늘어요! {name}님 화이팅!",
+    "{name}님, 도전하는 자세가 아름다워요! 다음엔 더 잘할 거예요.",
+    "잘하셨어요, {name}님! 꾸준히 하는 게 중요해요.",
+  ],
+  // 모든 게임 완료
+  allComplete: [
+    "와! {name}님, 오늘 모든 게임을 완료하셨어요! 대단해요! 기록을 저장해보세요.",
+    "축하해요, {name}님! 여섯 개 게임 모두 완료! 저장 버튼을 눌러주세요.",
+    "{name}님, 오늘의 두뇌 운동 완료! 정말 대단해요. 기록 저장하시는 거 잊지 마세요!",
+  ],
+  // 게임별 특화 메시지
+  gameSpecific: {
+    hwatu: [
+      "기억력 게임을 잘 해내셨어요!",
+      "짝을 찾는 실력이 좋으시네요!",
+    ],
+    yut: [
+      "색상 패턴을 잘 기억하셨어요!",
+      "집중력이 대단하시네요!",
+    ],
+    memory: [
+      "숫자를 잘 기억하셨어요!",
+      "기억력이 정말 좋으시네요!",
+    ],
+    proverb: [
+      "속담을 잘 아시네요!",
+      "언어 실력이 훌륭해요!",
+    ],
+    calc: [
+      "계산을 잘 하셨어요!",
+      "암산 실력이 좋으시네요!",
+    ],
+    sequence: [
+      "순서를 잘 맞추셨어요!",
+      "논리력이 뛰어나시네요!",
+    ],
+  },
+};
+
+/**
+ * 게임 완료 격려 메시지 생성
+ */
+function generateEncouragement(data: GameCompleteData): string {
+  const { game, score, maxScore, playerName, completedCount, totalGames } = data;
+  const name = playerName || '회원';
+  const scoreText = formatScoreToKorean(score);
+  const percent = (score / maxScore) * 100;
+  
+  // 모든 게임 완료 시 - 특별 메시지
+  if (completedCount >= totalGames) {
+    const pool = ENCOURAGEMENT_MESSAGES.allComplete;
+    const msg = pool[Math.floor(Math.random() * pool.length)];
+    return msg.replace(/{name}/g, name).replace(/{score}/g, scoreText);
+  }
+  
+  // 점수대별 메시지 선택
+  let mainPool: string[];
+  if (percent >= 80) {
+    mainPool = ENCOURAGEMENT_MESSAGES.excellent;
+  } else if (percent >= 60) {
+    mainPool = ENCOURAGEMENT_MESSAGES.good;
+  } else {
+    mainPool = ENCOURAGEMENT_MESSAGES.effort;
+  }
+  
+  // 메인 메시지 선택
+  const mainMsg = mainPool[Math.floor(Math.random() * mainPool.length)]
+    .replace(/{name}/g, name)
+    .replace(/{score}/g, scoreText);
+  
+  // 50% 확률로 게임별 특화 메시지 추가
+  const gamePool = ENCOURAGEMENT_MESSAGES.gameSpecific[game as keyof typeof ENCOURAGEMENT_MESSAGES.gameSpecific];
+  if (gamePool && Math.random() < 0.5) {
+    const gameMsg = gamePool[Math.floor(Math.random() * gamePool.length)];
+    return `${mainMsg} ${gameMsg}`;
+  }
+  
+  // 남은 게임 안내 (3개 이상 완료 시)
+  if (completedCount >= 3 && completedCount < totalGames) {
+    const remaining = totalGames - completedCount;
+    return `${mainMsg} ${remaining}개만 더 하면 오늘의 두뇌 운동 완료예요!`;
+  }
+  
+  return mainMsg;
 }
 
 // ============================================
@@ -555,6 +682,33 @@ function InteractiveAvatar() {
             const explanation = await callChatAPI("game_explain", { game });
 
             speakWithAvatar(explanation);
+          }
+          break;
+
+        // 🆕 게임 완료 시 격려 메시지
+        case "GAME_COMPLETE":
+          console.log("📥 GAME_COMPLETE:", event.data);
+          if (avatarRef.current) {
+            const gameData: GameCompleteData = {
+              game: event.data.game,
+              gameName: event.data.gameName,
+              score: event.data.score,
+              maxScore: event.data.maxScore,
+              playerName: event.data.playerName || userNameRef.current,
+              completedCount: event.data.completedCount,
+              totalGames: event.data.totalGames,
+            };
+            
+            const encouragement = generateEncouragement(gameData);
+            console.log("🎉 격려 메시지:", encouragement);
+            
+            // 채팅 히스토리에 추가
+            setChatHistory((prev) => [
+              ...prev,
+              { role: "assistant" as const, content: encouragement },
+            ]);
+            
+            speakWithAvatar(encouragement);
           }
           break;
       }

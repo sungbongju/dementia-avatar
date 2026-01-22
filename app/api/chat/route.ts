@@ -9,6 +9,7 @@
  * 1. 인사말 생성 (type: "greeting")
  * 2. 게임 설명 생성 (type: "game_explain")
  * 3. 일반 대화 + DB 조회 (type: "chat")
+ * 4. 🆕 음성 명령으로 게임 시작 (start_game)
  * 
  * 경로: app/api/chat/route.ts
  * ================================================
@@ -133,6 +134,25 @@ const tools: OpenAI.ChatCompletionTool[] = [
         required: ["game_key"]
       }
     }
+  },
+  // 🆕 게임 시작 명령
+  {
+    type: "function",
+    function: {
+      name: "start_game",
+      description: "사용자가 특정 게임을 시작하고 싶어할 때 호출합니다. '화투 시작해줘', '숫자 게임 할래', '산수 하자', '색상 패턴 해볼래', '속담 게임', '순서 맞추기 하고 싶어' 등의 요청에 사용됩니다.",
+      parameters: {
+        type: "object",
+        properties: {
+          game_key: {
+            type: "string",
+            enum: ["hwatu", "pattern", "memory", "proverb", "calc", "sequence"],
+            description: "시작할 게임 (hwatu=화투짝맞추기, pattern=색상패턴기억, memory=숫자기억하기, proverb=속담완성하기, calc=산수계산, sequence=순서맞추기)"
+          }
+        },
+        required: ["game_key"]
+      }
+    }
   }
 ];
 
@@ -245,6 +265,27 @@ async function executeFunction(name: string, args: any): Promise<string> {
       return JSON.stringify({ error: "게임 정보를 찾을 수 없습니다" });
     }
     
+    // 🆕 게임 시작 명령 처리
+    case "start_game": {
+      const gameNames: Record<string, string> = {
+        hwatu: "화투 짝맞추기",
+        pattern: "색상 패턴 기억",
+        memory: "숫자 기억하기",
+        proverb: "속담 완성하기",
+        calc: "산수 계산",
+        sequence: "순서 맞추기",
+      };
+      const gameName = gameNames[args.game_key] || args.game_key;
+      
+      // 🎯 특별한 형식으로 반환 - 클라이언트가 인식할 수 있도록
+      return JSON.stringify({
+        __command__: "START_GAME",
+        game_key: args.game_key,
+        game_name: gameName,
+        message: `${gameName} 게임을 시작할게요! 화이팅!`
+      });
+    }
+    
     default:
       return JSON.stringify({ error: "알 수 없는 함수" });
   }
@@ -288,6 +329,7 @@ ${userName ? `이름: ${userName}님` : "이름을 아직 모릅니다"}
 ## ⚠️ 중요 지침
 - 사용자가 점수, 성적, 랭킹, 기록을 물어보면 반드시 해당 function을 호출해서 DB에서 조회하세요
 - 게임 방법을 물어보면 get_game_info를 호출하세요
+- 🆕 사용자가 게임을 시작하고 싶어하면 (예: "화투 해줘", "숫자 게임 시작", "계산 하자", "색상 패턴 할래") 반드시 start_game 함수를 호출하세요
 - "개인정보 보호" 같은 거부 멘트 절대 금지
 - 항상 긍정적이고 격려하는 어조 유지
 - 조회한 정보를 바탕으로 친절하게 답변하세요
@@ -342,6 +384,13 @@ async function generateChatWithFunctions(
       const functionResult = await executeFunction(functionName, functionArgs);
       
       console.log(`🔧 결과: ${functionResult}`);
+
+      // 🆕 start_game 명령인 경우 바로 반환 (OpenAI 재호출 없이)
+      if (functionName === "start_game") {
+        const parsed = JSON.parse(functionResult);
+        // __command__를 포함한 JSON 형태로 반환하여 클라이언트가 인식할 수 있게
+        return JSON.stringify(parsed);
+      }
 
       // function 결과를 메시지에 추가
       messages.push({

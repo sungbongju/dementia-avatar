@@ -19,6 +19,10 @@
  * 
  * 🔧 2026-01-20 수정:
  * - 게임 완료 시 격려 메시지 기능 추가 (GAME_COMPLETE)
+ * 
+ * 🔧 2026-01-22 수정:
+ * - 🆕 음성으로 게임 시작 기능 추가 (VOICE_COMMAND)
+ * - "화투 게임 시작해줘" → 게임 자동 실행
  * ================================================
  */
 
@@ -358,6 +362,34 @@ function InteractiveAvatar() {
   );
 
   // ============================================
+  // 🆕 API 응답에서 명령 감지 및 처리
+  // ============================================
+  const processCommandResponse = useCallback((reply: string): string => {
+    try {
+      const parsed = JSON.parse(reply);
+      
+      if (parsed.__command__ === "START_GAME") {
+        console.log("🎮 게임 시작 명령 감지:", parsed);
+        
+        // 게임 페이지(index.html)에 명령 전송
+        window.parent.postMessage({
+          type: 'VOICE_COMMAND',
+          action: `START_GAME_${parsed.game_key.toUpperCase()}`,
+          game: parsed.game_key
+        }, '*');
+        
+        // 사용자에게 보여줄 메시지만 반환
+        return parsed.message || `${parsed.game_name} 게임을 시작할게요!`;
+      }
+    } catch (e) {
+      // JSON 파싱 실패 = 일반 대화 응답
+      console.log("📝 일반 대화 응답");
+    }
+    
+    return reply;
+  }, []);
+
+  // ============================================
   // 🆕 사용자 음성 처리 (Web Speech API용)
   // ============================================
   const handleUserSpeech = useCallback(
@@ -392,12 +424,16 @@ function InteractiveAvatar() {
           history: prev,
         }).then((reply) => {
           console.log("🎯 API reply:", reply);
+          
+          // 🆕 게임 시작 명령 감지 및 처리
+          const displayMessage = processCommandResponse(reply);
+          
           setChatHistory((current) => [
             ...current,
-            { role: "assistant" as const, content: reply },
+            { role: "assistant" as const, content: displayMessage },
           ]);
 
-          speakWithAvatar(reply);
+          speakWithAvatar(displayMessage);
 
           setIsLoading(false);
           isProcessingRef.current = false;
@@ -406,7 +442,7 @@ function InteractiveAvatar() {
         return newHistory;
       });
     },
-    [avatarRef, speakWithAvatar],
+    [avatarRef, speakWithAvatar, processCommandResponse],
   );
 
   // ============================================
@@ -621,12 +657,15 @@ function InteractiveAvatar() {
       history: chatHistory,
     });
 
+    // 🆕 텍스트 입력에도 명령 처리 적용
+    const displayMessage = processCommandResponse(reply);
+
     setChatHistory([
       ...newHistory,
-      { role: "assistant" as const, content: reply },
+      { role: "assistant" as const, content: displayMessage },
     ]);
 
-    await speakWithAvatar(reply);
+    await speakWithAvatar(displayMessage);
     setIsLoading(false);
   });
 

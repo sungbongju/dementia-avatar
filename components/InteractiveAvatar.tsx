@@ -177,29 +177,29 @@ const ENCOURAGEMENT_MESSAGES = {
   ],
   // 게임별 특화 메시지
   gameSpecific: {
-    hwatu: [
-      "기억력 게임을 잘 해내셨어요!",
-      "짝을 찾는 실력이 좋으시네요!",
+    stroop: [
+      "색깔 구별을 잘 해내셨어요!",
+      "판단력이 뛰어나시네요!",
     ],
-    yut: [
-      "색상 패턴을 잘 기억하셨어요!",
-      "집중력이 대단하시네요!",
+    gonogo: [
+      "참을성이 정말 좋으시네요!",
+      "판단력이 뛰어나시네요!",
     ],
-    memory: [
-      "숫자를 잘 기억하셨어요!",
-      "기억력이 정말 좋으시네요!",
+    nback: [
+      "숫자 기억력이 좋으시네요!",
+      "작업기억이 뛰어나시네요!",
     ],
-    proverb: [
-      "속담을 잘 아시네요!",
-      "언어 실력이 훌륭해요!",
+    pal: [
+      "그림 위치를 잘 기억하셨어요!",
+      "공간 기억력이 대단하시네요!",
     ],
-    calc: [
-      "계산을 잘 하셨어요!",
-      "암산 실력이 좋으시네요!",
+    ufov: [
+      "순간 포착 실력이 좋으시네요!",
+      "눈이 정말 빠르시네요!",
     ],
-    sequence: [
-      "순서를 잘 맞추셨어요!",
-      "논리력이 뛰어나시네요!",
+    trail: [
+      "순서를 잘 이으셨어요!",
+      "머리 회전이 빠르시네요!",
     ],
   },
 };
@@ -254,13 +254,14 @@ function generateEncouragement(data: GameCompleteData): string {
 // ============================================
 // 아바타 설정
 // ============================================
+// 교수님 Interactive Avatar
 const AVATAR_CONFIG: StartAvatarRequest = {
   quality: AvatarQuality.Low,
-  avatarName: AVATARS[0].avatar_id,
+  avatarName: "e2eb35c947644f09820aa3a4f9c15488",  // 교수님 아바타
   voice: {
-    rate: 1.2,                        // ✅ 쇼핑몰 봇과 동일
+    rate: 1.0,
     emotion: VoiceEmotion.FRIENDLY,   // ✅ 쇼핑몰 봇과 동일
-    model: ElevenLabsModel.eleven_flash_v2_5,
+    voiceId: "",  // 빈 값 → 아바타 내장 음성 사용
   },
   language: "ko",
 };

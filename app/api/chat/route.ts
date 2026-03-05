@@ -31,29 +31,29 @@ const DB_API_URL = process.env.DB_API_URL || "https://your-php-server.com/api.ph
 // 게임 정보
 // ============================================
 const GAME_INFO: { [key: string]: { name: string; description: string } } = {
-  hwatu: {
-    name: "화투 짝맞추기",
-    description: "뒤집어진 카드들 중에서 같은 그림의 짝을 찾는 기억력 게임. 12장의 카드 중 6쌍을 찾으면 됩니다. 적은 시도로 찾을수록 높은 점수!"
+  stroop: {
+    name: "글자 색깔 고르기",
+    description: "글자가 무슨 색으로 쓰여 있는지 골라주세요. 글자의 뜻이 아니라 색깔을 맞추는 게임이에요!"
   },
-  pattern: {
-    name: "색상 패턴 기억",
-    description: "빨강, 파랑, 노랑, 초록 4가지 색상 버튼이 순서대로 깜빡입니다. 그 순서를 기억해서 똑같이 눌러주세요. 단계가 올라갈수록 패턴이 길어져요!"
+  gonogo: {
+    name: "눌러라 참아라",
+    description: "초록 동그라미가 나오면 누르고, 빨간색이면 참으세요. 빠르게 판단하는 게임이에요!"
   },
-  memory: {
-    name: "숫자 기억하기",
-    description: "화면에 숫자가 잠깐 나타났다 사라집니다. 그 숫자를 순서대로 기억해서 입력하면 됩니다. 단계가 올라갈수록 숫자가 늘어나요!"
+  nback: {
+    name: "앞의 숫자 맞추기",
+    description: "방금 전에 본 숫자와 같은지 맞춰보세요. 숫자가 하나씩 나올 때마다 이전 숫자를 기억해야 해요!"
   },
-  proverb: {
-    name: "속담 완성하기",
-    description: "한국 전통 속담의 빈 칸을 채우는 게임. 4개의 보기 중 알맞은 답을 고르세요. 총 5문제!"
+  pal: {
+    name: "그림 자리 찾기",
+    description: "어떤 그림이 어디에 있었는지 기억해보세요. 상자를 열어서 찾는 게임이에요!"
   },
-  calc: {
-    name: "산수 계산",
-    description: "간단한 덧셈과 뺄셈 문제 5개를 풉니다. 천천히 계산해도 괜찮아요!"
+  ufov: {
+    name: "순간 포착 게임",
+    description: "화면에 잠깐 나타나는 그림을 알아맞춰보세요. 눈을 크게 뜨고 집중!"
   },
-  sequence: {
-    name: "순서 맞추기",
-    description: "그림들을 논리적인 순서대로 배열하는 게임. 예: 아침→점심→저녁, 씨앗→새싹→나무 등"
+  trail: {
+    name: "번호 순서대로 잇기",
+    description: "1번부터 차례대로 동그라미를 눌러주세요. 숫자와 글자를 번갈아 잇는 게임이에요!"
   }
 };
 
@@ -127,8 +127,8 @@ const tools: OpenAI.ChatCompletionTool[] = [
         properties: {
           game_key: {
             type: "string",
-            enum: ["hwatu", "pattern", "memory", "proverb", "calc", "sequence"],
-            description: "게임 종류 (hwatu, pattern, memory, proverb, calc, sequence)"
+            enum: ["stroop", "gonogo", "nback", "pal", "ufov", "trail"],
+            description: "게임 종류 (stroop, gonogo, nback, pal, ufov, trail)"
           }
         },
         required: ["game_key"]
@@ -140,14 +140,14 @@ const tools: OpenAI.ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "start_game",
-      description: "사용자가 특정 게임을 시작하고 싶어할 때 호출합니다. '화투 시작해줘', '숫자 게임 할래', '산수 하자', '색상 패턴 해볼래', '속담 게임', '순서 맞추기 하고 싶어' 등의 요청에 사용됩니다.",
+      description: "사용자가 특정 게임을 시작하고 싶어할 때 호출합니다. '글자 색깔 시작해줘, 눌러라 참아라 할래, 숫자 맞추기 하자, 그림 찾기 해볼래, 순간 포착 게임, 번호 잇기 하고 싶어' 등의 요청에 사용됩니다.",
       parameters: {
         type: "object",
         properties: {
           game_key: {
             type: "string",
-            enum: ["hwatu", "pattern", "memory", "proverb", "calc", "sequence"],
-            description: "시작할 게임 (hwatu=화투짝맞추기, pattern=색상패턴기억, memory=숫자기억하기, proverb=속담완성하기, calc=산수계산, sequence=순서맞추기)"
+            enum: ["stroop", "gonogo", "nback", "pal", "ufov", "trail"],
+            description: "시작할 게임 (stroop=글자색깔고르기, gonogo=눌러라참아라, nback=앞의숫자맞추기, pal=그림자리찾기, ufov=순간포착게임, trail=번호순서대로잇기)"
           }
         },
         required: ["game_key"]
@@ -194,12 +194,12 @@ async function executeFunction(name: string, args: any): Promise<string> {
           total_games: s.total_games || 0,
           best_score: s.best_score || 0,
           avg_score: Math.round(s.avg_score) || 0,
-          best_hwatu: s.best_hwatu || 0,
-          best_pattern: s.best_pattern || 0,
-          best_memory: s.best_memory || 0,
-          best_proverb: s.best_proverb || 0,
-          best_calc: s.best_calc || 0,
-          best_sequence: s.best_sequence || 0,
+          best_stroop: s.best_stroop || 0,
+          best_gonogo: s.best_gonogo || 0,
+          best_nback: s.best_nback || 0,
+          best_pal: s.best_pal || 0,
+          best_ufov: s.best_ufov || 0,
+          best_trail: s.best_trail || 0,
           first_played: s.first_played,
           last_played: s.last_played
         });
@@ -268,12 +268,12 @@ async function executeFunction(name: string, args: any): Promise<string> {
     // 🆕 게임 시작 명령 처리
     case "start_game": {
       const gameNames: Record<string, string> = {
-        hwatu: "화투 짝맞추기",
-        pattern: "색상 패턴 기억",
-        memory: "숫자 기억하기",
-        proverb: "속담 완성하기",
-        calc: "산수 계산",
-        sequence: "순서 맞추기",
+        stroop: "글자 색깔 고르기",
+        gonogo: "눌러라 참아라",
+        nback: "앞의 숫자 맞추기",
+        pal: "그림 자리 찾기",
+        ufov: "순간 포착 게임",
+        trail: "번호 순서대로 잇기",
       };
       const gameName = gameNames[args.game_key] || args.game_key;
       
@@ -305,12 +305,12 @@ function createSystemPrompt(userName: string): string {
 - 답변은 2-3문장으로 간결하게 해주세요
 
 ## 🎮 게임 종류 (각 100점, 총 600점 만점)
-1. 화투 짝맞추기 (hwatu) - 기억력 게임
-2. 색상 패턴 기억 (pattern) - 집중력 게임
-3. 숫자 기억하기 (memory) - 암기 게임
-4. 속담 완성하기 (proverb) - 언어 게임
-5. 산수 계산 (calc) - 수학 게임
-6. 순서 맞추기 (sequence) - 논리 게임
+1. 글자 색깔 고르기 (stroop) - 선택적 주의력 훈련
+2. 눌러라 참아라 (gonogo) - 억제 통제력 훈련
+3. 앞의 숫자 맞추기 (nback) - 작업기억 훈련
+4. 그림 자리 찾기 (pal) - 시공간 기억 훈련
+5. 순간 포착 게임 (ufov) - 처리 속도 훈련
+6. 번호 순서대로 잇기 (trail) - 실행 기능 훈련
 
 ## 🔢 숫자 읽는 규칙 (중요!)
 
@@ -329,7 +329,7 @@ ${userName ? `이름: ${userName}님` : "이름을 아직 모릅니다"}
 ## ⚠️ 중요 지침
 - 사용자가 점수, 성적, 랭킹, 기록을 물어보면 반드시 해당 function을 호출해서 DB에서 조회하세요
 - 게임 방법을 물어보면 get_game_info를 호출하세요
-- 🆕 사용자가 게임을 시작하고 싶어하면 (예: "화투 해줘", "숫자 게임 시작", "계산 하자", "색상 패턴 할래") 반드시 start_game 함수를 호출하세요
+- 🆕 사용자가 게임을 시작하고 싶어하면 (예: "글자 색깔 해줘", "숫자 맞추기 시작", "그림 찾기 하자", "순간 포착 할래") 반드시 start_game 함수를 호출하세요
 - "개인정보 보호" 같은 거부 멘트 절대 금지
 - 항상 긍정적이고 격려하는 어조 유지
 - 조회한 정보를 바탕으로 친절하게 답변하세요
@@ -460,12 +460,12 @@ async function generateGreeting(userName: string): Promise<string> {
 // 가장 잘하는 게임 찾기 헬퍼
 function getBestGame(stats: any): string {
   const games = [
-    { name: "화투 짝맞추기", score: stats.best_hwatu || 0 },
-    { name: "색상 패턴 기억", score: stats.best_pattern || 0 },
-    { name: "숫자 기억하기", score: stats.best_memory || 0 },
-    { name: "속담 완성하기", score: stats.best_proverb || 0 },
-    { name: "산수 계산", score: stats.best_calc || 0 },
-    { name: "순서 맞추기", score: stats.best_sequence || 0 },
+    { name: "글자 색깔 고르기", score: stats.best_stroop || 0 },
+    { name: "눌러라 참아라", score: stats.best_gonogo || 0 },
+    { name: "앞의 숫자 맞추기", score: stats.best_nback || 0 },
+    { name: "그림 자리 찾기", score: stats.best_pal || 0 },
+    { name: "순간 포착 게임", score: stats.best_ufov || 0 },
+    { name: "번호 순서대로 잇기", score: stats.best_trail || 0 },
   ];
   const best = games.reduce((a, b) => (a.score > b.score ? a : b));
   return best.score > 0 ? `${best.name}(${best.score}점)` : "아직 없음";
@@ -486,12 +486,12 @@ async function generateGameExplanation(gameKey: string, userName: string): Promi
     const statsResult = await callDBAPI("get_stats", { player_name: userName });
     if (statsResult.success && statsResult.stats) {
       const scoreMap: Record<string, string> = {
-        hwatu: "best_hwatu",
-        pattern: "best_pattern",
-        memory: "best_memory",
-        proverb: "best_proverb",
-        calc: "best_calc",
-        sequence: "best_sequence",
+        stroop: "best_stroop",
+        gonogo: "best_gonogo",
+        nback: "best_nback",
+        pal: "best_pal",
+        ufov: "best_ufov",
+        trail: "best_trail",
       };
       userGameScore = statsResult.stats[scoreMap[gameKey]] || 0;
     }

@@ -294,6 +294,7 @@ function InteractiveAvatar() {
   const isProcessingRef = useRef(false);
   const hasGreetedRef = useRef(false);
   const hasStartedRef = useRef(false);
+  const greetingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userNameRef = useRef("");
   const userStatsRef = useRef<Record<string, unknown> | null>(null);
 
@@ -533,6 +534,11 @@ function InteractiveAvatar() {
   const resetSession = useMemoizedFn(async () => {
     console.log("🔄 세션 초기화 중...");
 
+    if (greetingTimerRef.current) {
+      clearTimeout(greetingTimerRef.current);
+      greetingTimerRef.current = null;
+    }
+
     if (webSpeechRef.current) {
       webSpeechRef.current.destroy();
       webSpeechRef.current = null;
@@ -579,19 +585,19 @@ function InteractiveAvatar() {
         console.log("Stream ready:", event.detail);
 
         if (!hasGreetedRef.current) {
-          await new Promise((r) => setTimeout(r, 1500));
+          // 1.5초 후 그리팅 - 그 사이 게임 설명 요청이 오면 취소됨
+          greetingTimerRef.current = setTimeout(async () => {
+            if (hasGreetedRef.current) return; // 이미 다른 메시지가 나갔으면 스킵
+            hasGreetedRef.current = true;
 
-          // 🆕 수정: "손님" 기본값 제거, generateGreeting 함수 사용
-          const name = userNameRef.current;  // 기본값 없음!
-          const stats = userStatsRef.current as Record<string, unknown> | null;
+            const name = userNameRef.current;
+            const stats = userStatsRef.current as Record<string, unknown> | null;
+            const greeting = generateGreeting(name, stats);
 
-          // 🆕 새로운 인사말 생성 함수 사용 (숫자 한글 변환 + 이름 없을 때 처리)
-          const greeting = generateGreeting(name, stats);
-
-          console.log("👋 인사말:", greeting);
-          await speakWithAvatar(greeting);
-          setChatHistory([{ role: "assistant", content: greeting }]);
-          hasGreetedRef.current = true;
+            console.log("👋 인사말:", greeting);
+            await speakWithAvatar(greeting);
+            setChatHistory([{ role: "assistant", content: greeting }]);
+          }, 1500);
         }
       });
 
@@ -718,6 +724,12 @@ function InteractiveAvatar() {
 
         case "EXPLAIN_GAME":
           console.log("📥 EXPLAIN_GAME:", game);
+          // 그리팅보다 게임 설명이 우선 - 그리팅 취소
+          if (greetingTimerRef.current) {
+            clearTimeout(greetingTimerRef.current);
+            greetingTimerRef.current = null;
+            hasGreetedRef.current = true; // 그리팅 스킵 표시
+          }
           if (avatarRef.current && game) {
             const explanation = await callChatAPI("game_explain", { game });
 
@@ -725,7 +737,19 @@ function InteractiveAvatar() {
           }
           break;
 
-        // 🆕 게임 완료 시 격려 메시지
+        // N-Back 레벨 전환 설명
+        case "NBACK_LEVEL":
+          console.log("📥 NBACK_LEVEL:", event.data);
+          if (avatarRef.current && event.data.explanation) {
+            speakWithAvatar(event.data.explanation);
+            setChatHistory((prev) => [
+              ...prev,
+              { role: "assistant" as const, content: event.data.explanation },
+            ]);
+          }
+          break;
+
+        // 게임 완료 시 격려 메시지
         case "GAME_COMPLETE":
           console.log("📥 GAME_COMPLETE:", event.data);
           if (avatarRef.current) {
@@ -738,16 +762,15 @@ function InteractiveAvatar() {
               completedCount: event.data.completedCount,
               totalGames: event.data.totalGames,
             };
-            
+
             const encouragement = generateEncouragement(gameData);
             console.log("🎉 격려 메시지:", encouragement);
-            
-            // 채팅 히스토리에 추가
+
             setChatHistory((prev) => [
               ...prev,
               { role: "assistant" as const, content: encouragement },
             ]);
-            
+
             speakWithAvatar(encouragement);
           }
           break;

@@ -53,7 +53,7 @@ const GAME_INFO: { [key: string]: { name: string; description: string } } = {
   },
   trail: {
     name: "번호 순서대로 잇기",
-    description: "1번부터 차례대로 동그라미를 눌러주세요. 숫자와 글자를 번갈아 잇는 게임이에요!"
+    description: "두 파트로 나뉘어요! Part A는 1, 2, 3 순서대로 누르면 돼요. Part B는 숫자와 글자를 번갈아 이어요. 1 다음에 가, 그 다음 2, 그 다음 나 이런 식이에요!"
   }
 };
 

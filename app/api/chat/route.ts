@@ -41,7 +41,7 @@ const GAME_INFO: { [key: string]: { name: string; description: string } } = {
   },
   nback: {
     name: "앞의 숫자 맞추기",
-    description: "방금 전에 본 숫자와 같은지 맞춰보세요. 예를 들어 삼이 나오고 또 삼이 나오면 같음! 삼 다음에 칠이 나오면 다름! 이에요."
+    description: "방금 전에 본 숫자와 같은지 맞춰보세요. 예를 들어 삼 이 나오고 또 삼 이 나오면 같음! 삼 다음에 칠 이 나오면 다름! 이에요."
   },
   pal: {
     name: "그림 자리 찾기",

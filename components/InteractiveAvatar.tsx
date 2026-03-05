@@ -148,7 +148,7 @@ const ENCOURAGEMENT_MESSAGES = {
   // 높은 점수 (80점 이상)
   excellent: [
     "{name}님, {score} 정말 대단해요! 실력이 출중하시네요!",
-    "와, {score}이에요! {name}님, 기억력이 정말 좋으시네요!",
+    "와, {score}이에요! {name}님, 정말 잘하시네요!",
     "{score}! 훌륭해요, {name}님! 이 조자로 계속 가봐요!",
     "{name}님, {score} 멋져요! 두뇌가 아주 건강하시네요!",
     "대단해요! {score}이라니, {name}님 최고예요!",

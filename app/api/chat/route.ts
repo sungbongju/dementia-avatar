@@ -41,7 +41,7 @@ const GAME_INFO: { [key: string]: { name: string; description: string } } = {
   },
   nback: {
     name: "앞의 숫자 맞추기",
-    description: "방금 전에 본 숫자와 같은지 맞춰보세요. 숫자가 하나씩 나올 때마다 이전 숫자를 기억해야 해요!"
+    description: "방금 전에 본 숫자와 같은지 맞춰보세요. 예를 들어 삼이 나오고 또 삼이 나오면 같음! 삼 다음에 칠이 나오면 다름! 이에요."
   },
   pal: {
     name: "그림 자리 찾기",
@@ -53,7 +53,7 @@ const GAME_INFO: { [key: string]: { name: string; description: string } } = {
   },
   trail: {
     name: "번호 순서대로 잇기",
-    description: "두 파트로 나뉘어요! Part A는 1, 2, 3 순서대로 누르면 돼요. Part B는 숫자와 글자를 번갈아 이어요. 1 다음에 가, 그 다음 2, 그 다음 나 이런 식이에요!"
+    description: "두 파트로 나뉘어요! 파트 에이는 일, 이, 삼 순서대로 누르면 돼요. 파트 비는 숫자와 글자를 번갈아 이어요. 일 다음에 가, 그 다음 이, 그 다음 나, 이런 식이에요!"
   }
 };
 

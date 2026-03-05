@@ -877,17 +877,29 @@ function InteractiveAvatar() {
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           {sessionState === StreamingAvatarSessionState.CONNECTING ? (
-            <div className="flex flex-col items-center gap-3 text-white">
-              <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-              <span className="text-sm">연결 중...</span>
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative w-16 h-16">
+                <div className="absolute inset-0 rounded-full border-2 border-purple-500/30 animate-ping" />
+                <div className="absolute inset-2 rounded-full border-2 border-purple-400 border-t-transparent animate-spin" />
+                <div className="absolute inset-0 flex items-center justify-center text-2xl">🧠</div>
+              </div>
+              <span className="text-zinc-300 text-sm tracking-wide">두뇌 건강 도우미 연결 중...</span>
             </div>
           ) : (
-            <button
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full text-base font-medium shadow-lg"
-              onClick={startSession}
-            >
-              🎮 게임 도우미 시작
-            </button>
+            <div className="flex flex-col items-center gap-5">
+              <div className="relative group cursor-pointer" onClick={startSession}>
+                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500" />
+                <div className="relative w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-700 group-hover:border-purple-500 transition-all duration-300">
+                  <svg className="w-8 h-8 text-purple-400 group-hover:text-white transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="text-center">
+                <p className="text-white text-sm font-medium">대화를 시작하려면 터치하세요</p>
+                <p className="text-zinc-500 text-xs mt-1">음성으로 질문할 수 있습니다</p>
+              </div>
+            </div>
           )}
         </div>
       )}
